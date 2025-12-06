@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control de Deudas - Edith vs Brayan</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --panel-2:#0b1220;
+      --text:#f8fafc;
+      --muted:#cbd5e1;
+      --line:rgba(255,255,255,.08);
+
+      --red-soft: rgba(239,68,68,.14);
+      --red-strong: #ef4444;
+
+      --green-soft: rgba(34,197,94,.14);
+      --green-strong: #22c55e;
+
+      --accent: #60a5fa;
+      --warning: #f59e0b;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      background:
+        radial-gradient(1200px 600px at 10% 10%, rgba(96,165,250,.08), transparent 60%),
+        radial-gradient(1200px 600px at 90% 20%, rgba(34,197,94,.07), transparent 60%),
+        radial-gradient(1200px 600px at 70% 90%, rgba(239,68,68,.06), transparent 60%),
+        var(--bg);
+      color:var(--text);
+      padding:24px;
+    }
+
+    .container{
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius: 16px;
+      backdrop-filter: blur(6px);
+    }
+    header h1{
+      font-size: 20px;
+      margin:0;
+      letter-spacing:.3px;
+    }
+    header .sub{
+      color:var(--muted);
+      font-size: 12.5px;
+      margin-top:4px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    @media(min-width: 980px){
+      .grid-2{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .card h2{
+      margin:0 0 10px 0;
+      font-size: 17px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .hint{
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 14px 0;
+    }
+
+    .pill-red{
+      color: #fecaca;
+      background: var(--red-soft);
+      border:1px solid rgba(239,68,68,.25);
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10.5px;
+    }
+    .pill-green{
+      color: #bbf7d0;
+      background: var(--green-soft);
+      border:1px solid rgba(34,197,94,.25);
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10.5px;
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+    thead th{
+      text-align:left;
+      font-size: 11.5px;
+      color: var(--muted);
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-2);
+      letter-spacing: .2px;
+    }
+    tbody td{
+      padding: 10px 12px;
+      font-size: 12.8px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    tbody tr:last-child td{ border-bottom:none; }
+
+    .amount{
+      font-variant-numeric: tabular-nums;
+      font-weight: 650;
+      letter-spacing:.2px;
+      white-space: nowrap;
+    }
+
+    .row-negative{
+      background: linear-gradient(90deg, var(--red-soft), transparent 45%);
+    }
+    .row-positive{
+      background: linear-gradient(90deg, var(--green-soft), transparent 45%);
+    }
+
+    .tag{
+      display:inline-block;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border:1px solid var(--line);
+      color: var(--muted);
+      background: rgba(255,255,255,.03);
+      margin-left: 6px;
+    }
+
+    .summary{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media(min-width: 800px){
+      .summary{ grid-template-columns: 1.2fr .8fr; }
+    }
+
+    .summary-box{
+      background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.01));
+      border:1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .summary-box h3{
+      margin:0 0 8px 0;
+      font-size: 15px;
+    }
+    .kvs{
+      display:grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .kv{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      font-size: 12.4px;
+    }
+    .kv .label{ color: var(--muted); }
+    .kv .value{
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .net-negative{
+      color: #fecaca;
+    }
+    .net-positive{
+      color: #bbf7d0;
+    }
+
+    .note{
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .footer{
+      text-align:center;
+      color: rgba(255,255,255,.45);
+      font-size: 10.5px;
+      padding: 6px 0 2px 0;
+    }
+
+    .small{
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .section-sep{
+      height: 1px;
+      background: var(--line);
+      margin: 14px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <div>
+        <h1>Lista de deudas y balance</h1>
+        <div class="sub">Incluye día de la semana y ordenado por fecha (2025).</div>
+      </div>
+      <div class="badge">
+        <span>Moneda:</span>
+        <strong>L</strong>
+        <span class="tag">sin .00</span>
+      </div>
+    </header>
+
+    <div class="card summary">
+      <div class="summary-box">
+        <h3>Resumen rápido</h3>
+        <div class="note">
+          Según tu regla: <strong>sumar Brayan</strong> y <strong>restar Edith</strong>.
+          Los registros de Edith están marcados en rojo (negativos) y los de Brayan en verde (sumas a favor).
+        </div>
+        <div class="kvs">
+          <div class="kv">
+            <span class="label">Total Edith (me debes)</span>
+            <span class="value" id="total-godo">—</span>
+          </div>
+          <div class="kv">
+            <span class="label">Total Brayan (a favor)</span>
+            <span class="value" id="total-Brayan">—</span>
+          </div>
+          <div class="kv">
+            <span class="label">Saldo global (Brayan - Edith)</span>
+            <span class="value" id="net-total">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-box">
+        <h3>¿Quién le debe a quién?</h3>
+        <div class="note" id="who-owes">
+          —
+        </div>
+        <div class="section-sep"></div>
+        <div class="small">
+          Este “saldo global” es solo una vista combinada según tu criterio y no sustituye
+          el saldo individual con cada persona.
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+
+      <div class="card">
+        <h2>
+          Edith
+          <span class="pill-red">NEGATIVOS (me debes)</span>
+        </h2>
+        <p class="hint">Filas con fondo rojo para identificar deudas a tu favor. Ordenadas por fecha.</p>
+
+        <table id="table-godo">
+          <thead>
+            <tr>
+              <th style="width: 110px;">Cantidad</th>
+              <th>Descripción</th>
+              <th style="width: 160px;">Fecha</th>
+              <th style="width: 110px;">Día</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>
+          Brayan
+          <span class="pill-green">SUMAS A FAVOR</span>
+        </h2>
+        <p class="hint">Filas con fondo verde. Ordenadas por fecha.</p>
+
+        <table id="table-Brayan">
+          <thead>
+            <tr>
+              <th style="width: 110px;">Cantidad</th>
+              <th>Descripción</th>
+              <th style="width: 160px;">Fecha</th>
+              <th style="width: 110px;">Día</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="card">
+      <h2>Cronología unificada</h2>
+      <p class="hint">Todos los registros en una sola línea de tiempo, ordenados por fecha.</p>
+
+      <table id="table-all">
+        <thead>
+          <tr>
+            <th style="width: 120px;">Persona</th>
+            <th style="width: 110px;">Cantidad</th>
+            <th>Descripción</th>
+            <th style="width: 160px;">Fecha</th>
+            <th style="width: 110px;">Día</th>
+            <th style="width: 120px;">Tipo</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="section-sep"></div>
+
+      <div class="note">
+        <strong>Nota pendiente:</strong> “licuadora oster” aparece en tu texto sin cantidad ni fecha,
+        por eso no se incluyó en las tablas. Puedes agregarla al arreglo de datos si luego defines monto y fecha.
+      </div>
+    </div>
+
+    <div class="footer">Plantilla rápida de control de deudas • 2025</div>
+  </div>
+
+  <script>
+    // =========================
+    // DATOS (2025)
+    // =========================
+    const Edith = [
+      {
+        amount: 266.5,
+        desc: "RESULTADO RESTANDO TRANSFERENCIA DE 4,000 LEMPIRAS",
+        date: "2025-11-08"
+      },
+      {
+        amount: 1000,
+        desc: "EFECTIVO",
+        date: "2025-11-08"
+      },
+      {
+        amount: 88,
+        desc: "1 Cartón de huevos",
+        date: "2025-11-12"
+      },
+      {
+        amount: 261,
+        desc: "3 cartones de huevos",
+        date: "2025-11-13"
+      },
+      {
+        amount: 216,
+        desc: "12 papel higiénico",
+        date: "2025-11-17"
+      },
+      {
+        amount: 123,
+        desc: "3 pastas Colgate",
+        date: "2025-11-17"
+      },
+      {
+        amount: 204,
+        desc: "6 toallas húmedas",
+        date: "2025-11-17"
+      },
+      {
+        amount: 174,
+        desc: "3 cobertores lavadora LA UNO",
+        date: "2025-11-20"
+      },
+      {
+        amount: 244,
+        desc: "3 cortinas baño LA UNO",
+        date: "2025-11-20"
+      },
+      {
+        amount: 178,
+        desc: "1 asiento inodoro LA UNO",
+        date: "2025-11-20"
+      },
+      {
+        amount: 950,
+        desc: "Le resté el costo del vaso de vidrio",
+        date: "2025-11-28"
+      },
+      {
+        amount: 1044,
+        desc: "Dinero que me recibiste de Mariela",
+        date: "2025-11-29"
+      },
+      {
+        amount: 480,
+        desc: "Transferencia de una moto escala",
+        date: "2025-11-30"
+      },
+      {
+        amount: 70,
+        desc: "Precio inversión 10 flores navideñas",
+        date: "2025-12-05"
+      }
+    ];
+
+    const Brayan = [
+      {
+        amount: 400,
+        desc: "Restante de los 3400 RENTA",
+        date: "2025-09-30"
+      },
+      {
+        amount: 80,
+        desc: "Cámara de exterior",
+        date: "2025-11-25"
+      },
+      {
+        amount: 80,
+        desc: "Comisión moto escala",
+        date: "2025-11-28"
+      },
+      {
+        amount: 57.2,
+        desc: "Comisión adaptador 7 puertos",
+        date: "2025-11-28"
+      },
+      {
+        amount: 28.6,
+        desc: "Comisión de set 115 en 1",
+        date: "2025-11-29"
+      },
+      {
+        amount: 80,
+        desc: "Comisión moto escala",
+        date: "2025-11-29"
+      },
+      {
+        amount: 80,
+        desc: "Comisión moto escala",
+        date: "2025-11-30"
+      },
+      {
+        amount: 192,
+        desc: "Comisión de 2 pecheras",
+        date: "2025-12-05"
+      }
+    ];
+
+    // =========================
+    // HELPERS
+    // =========================
+    const daysES = ["lunes","martes","miércoles","jueves","viernes","sábado","domingo"];
+
+    function parseISO(iso){
+      const [y,m,d] = iso.split("-").map(Number);
+      return new Date(y, m-1, d);
+    }
+
+    function getDayName(iso){
+      const dt = parseISO(iso);
+      // JS getDay(): 0=domingo ... 6=sábado
+      const map = {
+        0: "domingo",
+        1: "lunes",
+        2: "martes",
+        3: "miércoles",
+        4: "jueves",
+        5: "viernes",
+        6: "sábado"
+      };
+      return map[dt.getDay()];
+    }
+
+    function formatDateES(iso){
+      const dt = parseISO(iso);
+      const day = String(dt.getDate()).padStart(2,"0");
+      const month = String(dt.getMonth()+1).padStart(2,"0");
+      const year = dt.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Formato "L" sin .00
+    function formatL(value){
+      // redondeo razonable a 2 decimales
+      const rounded = Math.round((value + Number.EPSILON) * 100) / 100;
+      // convertir a string y recortar ceros finales
+      let s = rounded.toFixed(2);
+      s = s.replace(/\.00$/,"");
+      s = s.replace(/(\.\d)0$/,"$1");
+      // separador de miles
+      const parts = s.split(".");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return `L ${parts.join(".")}`;
+    }
+
+    function sortByDateAsc(list){
+      return [...list].sort((a,b) => a.date.localeCompare(b.date));
+    }
+
+    function sumAmounts(list){
+      return list.reduce((acc, x) => acc + (Number(x.amount)||0), 0);
+    }
+
+    function buildTable(tbody, list, rowClass){
+      tbody.innerHTML = "";
+      list.forEach(item => {
+        const tr = document.createElement("tr");
+        if(rowClass) tr.classList.add(rowClass);
+
+        const tdAmt = document.createElement("td");
+        tdAmt.innerHTML = `<span class="amount">${formatL(item.amount)}</span>`;
+
+        const tdDesc = document.createElement("td");
+        tdDesc.textContent = item.desc;
+
+        const tdDate = document.createElement("td");
+        tdDate.textContent = formatDateES(item.date);
+
+        const tdDay = document.createElement("td");
+        tdDay.textContent = getDayName(item.date);
+
+        tr.appendChild(tdAmt);
+        tr.appendChild(tdDesc);
+        tr.appendChild(tdDate);
+        tr.appendChild(tdDay);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function buildUnifiedTable(tbody, items){
+      tbody.innerHTML = "";
+      items.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.classList.add(item.type === "negativo" ? "row-negative" : "row-positive");
+
+        const tdPerson = document.createElement("td");
+        tdPerson.textContent = item.person;
+
+        const tdAmt = document.createElement("td");
+        tdAmt.innerHTML = `<span class="amount">${formatL(item.amount)}</span>`;
+
+        const tdDesc = document.createElement("td");
+        tdDesc.textContent = item.desc;
+
+        const tdDate = document.createElement("td");
+        tdDate.textContent = formatDateES(item.date);
+
+        const tdDay = document.createElement("td");
+        tdDay.textContent = getDayName(item.date);
+
+        const tdType = document.createElement("td");
+        tdType.innerHTML = item.type === "negativo"
+          ? `<span class="pill-red">Negativo</span>`
+          : `<span class="pill-green">A favor</span>`;
+
+        tr.appendChild(tdPerson);
+        tr.appendChild(tdAmt);
+        tr.appendChild(tdDesc);
+        tr.appendChild(tdDate);
+        tr.appendChild(tdDay);
+        tr.appendChild(tdType);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // =========================
+    // RENDER
+    // =========================
+    document.addEventListener("DOMContentLoaded", () => {
+      const gSorted = sortByDateAsc(Edith);
+      const pSorted = sortByDateAsc(Brayan);
+
+      // Tablas individuales
+      buildTable(
+        document.querySelector("#table-godo tbody"),
+        gSorted,
+        "row-negative"
+      );
+      buildTable(
+        document.querySelector("#table-Brayan tbody"),
+        pSorted,
+        "row-positive"
+      );
+
+      // Unificada
+      const unified = [
+        ...gSorted.map(x => ({...x, person:"Edith", type:"negativo"})),
+        ...pSorted.map(x => ({...x, person:"Brayan", type:"favor"}))
+      ].sort((a,b) => a.date.localeCompare(b.date));
+
+      buildUnifiedTable(
+        document.querySelector("#table-all tbody"),
+        unified
+      );
+
+      // Totales
+      const totalG = sumAmounts(gSorted);
+      const totalP = sumAmounts(pSorted);
+      const net = totalP - totalG; // tu regla
+
+      document.getElementById("total-godo").textContent = formatL(totalG);
+      document.getElementById("total-Brayan").textContent = formatL(totalP);
+
+      const netEl = document.getElementById("net-total");
+      netEl.textContent = (net < 0 ? "-" : "") + formatL(Math.abs(net));
+      netEl.classList.toggle("net-negative", net < 0);
+      netEl.classList.toggle("net-positive", net > 0);
+
+      // Interpretación
+      // Interpretación (versión corregida entre Edith y Brayan)
+const who = document.getElementById("who-owes");
+
+if (net < 0) {
+  // Significa que Papia tiene más saldo a favor → Edith queda debiendo
+  who.innerHTML = `
+    <strong>Edith le debe a Brayan</strong> la cantidad de 
+    <strong class="net-negative">${formatL(Math.abs(net))}</strong>.
+  `;
+} else if (net > 0) {
+  // Significa que Edith tiene menos deuda comparado al saldo a favor → Papia debe
+  who.innerHTML = `
+    <strong>Brayan le debe a Edith</strong> la cantidad de 
+    <strong class="net-positive">${formatL(net)}</strong>.
+  `;
+} else {
+  who.innerHTML = `
+    No hay diferencia, ambos saldos quedan equilibrados.
+  `;
+}
+
+         });
+  </script>
+</body>
+</html>
